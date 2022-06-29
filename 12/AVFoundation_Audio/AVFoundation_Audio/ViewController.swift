@@ -18,18 +18,24 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        audioNameLabel.text = currentSong
-        do {
-            Player = try AVAudioPlayer(contentsOf: URL.init(fileURLWithPath: Bundle.main.path(forResource: currentSong, ofType: "mp3")!))
-            Player.prepareToPlay()
-        }
-        catch {
-            print(error)
-        }
-        
+        goPlayer()
     }
 
     @IBOutlet weak var audioNameLabel: UILabel!
+    
+    
+    @IBAction func prevButton(_ sender: Any) {
+        print("prevButton is working")
+        guard let songNumber = playList.firstIndex(of: currentSong) else {return print("not found playList.firstIndex")}
+        if songNumber - 1 < 0 {
+            print("prev")
+            currentSong = playList.last!
+        } else {
+            currentSong = playList[songNumber - 1]
+        }
+        goPlayer()
+        
+    }
     
     @IBAction func PlayButton(_ sender: Any) {
         Player.play()
@@ -53,5 +59,28 @@ class ViewController: UIViewController {
             print("Already stopped!")
         }
     }
-
+    
+    
+    @IBAction func nextButton(_ sender: Any) {
+        print("nextButton is working")
+            guard let songNumber = playList.firstIndex(of: self.currentSong) else {return print("not found playList.firstIndex")}
+            if songNumber + 1 < playList.count {
+                currentSong = playList[songNumber + 1]
+            } else {
+                print("next")
+                currentSong = playList[0]
+            }
+        goPlayer()
+    }
+    
+    func goPlayer() {
+        audioNameLabel.text = currentSong
+        do {
+            Player = try AVAudioPlayer(contentsOf: URL.init(fileURLWithPath: Bundle.main.path(forResource: currentSong, ofType: "mp3")!))
+            Player.prepareToPlay()
+        }
+        catch {
+            print(error)
+        }
+    }
 }
