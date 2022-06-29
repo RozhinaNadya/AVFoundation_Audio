@@ -24,16 +24,25 @@ class ViewController: UIViewController {
             print(error)
         }
         
-        
     }
 
     @IBAction func PlayButton(_ sender: Any) {
         Player.play()
     }
     
+    @IBAction func PauseButton(_ sender: Any) {
+        if Player.isPlaying {
+            Player.stop()
+        }
+        else {
+            print("Already stopped!")
+        }
+    }
+    
     @IBAction func StopButton(_ sender: Any) {
         if Player.isPlaying {
             Player.stop()
+            Player.currentTime = 0
         }
         else {
             print("Already stopped!")
