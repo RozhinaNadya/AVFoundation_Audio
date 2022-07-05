@@ -5,13 +5,15 @@
 import UIKit
 import AVFoundation
 import AVKit
+import youtube_ios_player_helper
+import XCDYouTubeKit
 
-class ViewController: UIViewController {
-    
+class ViewController: UIViewController, YTPlayerViewDelegate {
+        
+    private lazy var streamURL1 =  "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_adv_example_hevc/master.m3u8"
 
-    private lazy var streamURL1 = URL(string: "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_adv_example_hevc/master.m3u8")!
     
-    private lazy var streamURL2 = URL(string: "https://youtu.be/Kv2dQZM022w")
+    private lazy var streamURL2 = "t5ZLFM33EIM&ab_channel=Planeperworld"
     
     lazy var dataTableView = ["Demo" : streamURL1, "demo2" : streamURL2]
 
@@ -22,17 +24,31 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     
-    func playVideo(video: URL) {
-    // Создаём AVPlayer со ссылкой на видео.
-        let player = AVPlayer(url: video)
+    func playVideo(video: String) {
+        print("play demo")
+        let myVideo = URL(string: video)!
+        let player = AVPlayer(url: myVideo)
 
-        // Создаём AVPlayerViewController и передаём ссылку на плеер.
         let controller = AVPlayerViewController()
         controller.player = player
 
-        // Показываем контроллер модально и запускаем плеер.
         present(controller, animated: true) {
             player.play()
+        }
+    }
+    
+    func playYoutubeVideo(video: String) {
+        print("play youtube")
+
+        let controller = AVPlayerViewController()
+
+        XCDYouTubeClient.default().getVideoWithIdentifier(video) { [weak controller] (video: XCDYouTubeVideo?, error: Error?) in
+            if let streamURLs = video?.streamURLs, let streamURL = (streamURLs[XCDYouTubeVideoQualityHTTPLiveStreaming] ?? streamURLs[YouTubeVideoQuality.hd720] ?? streamURLs[YouTubeVideoQuality.medium360] ?? streamURLs[YouTubeVideoQuality.small240]) {
+                controller?.player = AVPlayer(url: streamURL)
+            }
+        }
+        present(controller, animated: true) {
+            controller.player?.play()
         }
     }
     
@@ -64,7 +80,17 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         let currentCell = tableView.cellForRow(at: index!)
         guard let key = currentCell?.textLabel?.text else { return }
         guard let videoURL = dataTableView[key] else {return}
-        playVideo(video: videoURL!)
+        if videoURL.hasPrefix("http") {
+            playVideo(video: videoURL)
+        } else {
+            playYoutubeVideo(video: videoURL)
 
+        }
     }
+}
+
+struct YouTubeVideoQuality {
+    static let hd720 = NSNumber(value: XCDYouTubeVideoQuality.HD720.rawValue)
+    static let medium360 = NSNumber(value: XCDYouTubeVideoQuality.medium360.rawValue)
+    static let small240 = NSNumber(value: XCDYouTubeVideoQuality.small240.rawValue)
 }
